@@ -15,7 +15,7 @@ return new class extends Migration
             $table->char('id', 36)->primary();      // UUID PK (CHAR(36))
             $table->char('tenant_id', 36);
             $table->string('email');
-            $table->string('role', 20)->default('member');
+            $table->enum('role', ['owner', 'admin', 'member', 'viewer'])->default('member');
             $table->string('token_hash', 255)->unique(); // hashed token (not plain)
             $table->timestamp('accepted_at')->nullable();
             $table->timestamp('expires_at')->nullable();
