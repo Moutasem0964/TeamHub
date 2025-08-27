@@ -15,7 +15,7 @@ return new class extends Migration
             $table->char('id', 36)->primary();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->string('plan');
+            $table->enum('plan',['free','plus']);
             $table->json('settings')->nullable();
             $table->timestamps();
         });

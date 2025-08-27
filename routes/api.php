@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\TenantController;
 use App\Http\Controllers\Api\V1\TenantMemberController;
 use App\Http\Controllers\Api\V1\WebhookController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\VerifyEmailController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,12 @@ Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);       // login and get token
     Route::post('forgot-password', [AuthController::class, 'forgotPassword']); // optional
     Route::post('reset-password', [AuthController::class, 'resetPassword']);   // optional
+    Route::get('email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])
+        ->name('verification.verify');
+
+    // Resend verification email
+    Route::post('email/resend', [VerifyEmailController::class, 'resend'])
+        ->name('verification.resend');
 
     // Protected endpoints (require token)
     Route::middleware('auth:sanctum')->group(function () {

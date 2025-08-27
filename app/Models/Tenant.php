@@ -10,7 +10,11 @@ class Tenant extends Model
 {
     use HasFactory, HasUuid;
 
-    protected $fillable = ['name', 'settings'];
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+
+    protected $fillable = ['name', 'settings', 'slug', 'plan'];
 
     protected $casts = [
         'settings' => 'array',
