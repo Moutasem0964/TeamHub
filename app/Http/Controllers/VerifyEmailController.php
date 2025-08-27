@@ -38,4 +38,21 @@ class VerifyEmailController extends Controller
             'token'   => $token,
         ], 200);
     }
+
+    public function resend(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified.'], 200);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'Verification email resent.'], 200);
+    }
 }

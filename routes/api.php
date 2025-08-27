@@ -38,11 +38,11 @@ Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);       // login and get token
     Route::post('forgot-password', [AuthController::class, 'forgotPassword']); // optional
     Route::post('reset-password', [AuthController::class, 'resetPassword']);   // optional
-    Route::get('email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])
+    Route::get('email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])->middleware('throttle:5,1')
         ->name('verification.verify');
 
     // Resend verification email
-    Route::post('email/resend', [VerifyEmailController::class, 'resend'])
+    Route::post('email/resend', [VerifyEmailController::class, 'resend'])->middleware('throttle:5,1')
         ->name('verification.resend');
 
     // Protected endpoints (require token)
@@ -51,7 +51,6 @@ Route::prefix('v1')->group(function () {
         Route::get('me', [AuthController::class, 'me']);          // current user info
         Route::post('refresh', [AuthController::class, 'refresh']); // optional if you want refresh logic
     });
-
 });
 
 
@@ -84,6 +83,4 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     // Tenant Membership
     Route::apiResource('tenants', TenantController::class);
     Route::apiResource('tenants.members', TenantMemberController::class);
-
 });
-
