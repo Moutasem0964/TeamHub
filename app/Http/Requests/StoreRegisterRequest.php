@@ -47,7 +47,6 @@ class StoreRegisterRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'invite_token' => ['nullable', 'string'], // token checked later in controller
             'create_tenant' => ['sometimes', 'boolean'],
         ];
 

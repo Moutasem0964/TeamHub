@@ -10,6 +10,9 @@ class TenantInvitation extends Model
 {
     use HasFactory,HasUuid;
 
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
         'id',
         'tenant_id',

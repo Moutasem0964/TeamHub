@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Traits\HasUuid;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -17,6 +16,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public $incrementing = false;
     protected $keyType = 'string';
+    protected $guard_name = 'sanctum';
 
 
     /**
@@ -28,7 +28,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'profile'
+        'profile',
+        'current_tenant_id'
     ];
 
     /**
@@ -55,8 +56,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public function tenants()
     {
         return $this->belongsToMany(Tenant::class, 'tenant_users')
-            ->withPivot('role')
-            ->withTimestamps();
+            ->using(\App\Models\TenantUser::class)
+            ->withPivot('role');
     }
 
     public function projects()

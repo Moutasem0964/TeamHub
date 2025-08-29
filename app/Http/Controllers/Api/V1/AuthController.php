@@ -28,14 +28,15 @@ class AuthController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
-            // Optionally create a tenant
+            $tenantId = null;
+
             if (!empty($validated['create_tenant']) && $validated['create_tenant'] === true) {
                 $tenantName = $validated['tenant_name'];
 
                 $tenant = Tenant::create([
                     'name' => $tenantName,
                     'slug' => SlugService::generateUniqueSlug($tenantName),
-                    'plan' => $validated['plan'], // 'free' or 'plus'
+                    'plan' => $validated['plan'],
                 ]);
 
                 TenantUser::create([
@@ -45,12 +46,16 @@ class AuthController extends Controller
                     'joined_at'   => now(),
                     'accepted_at' => now(),
                 ]);
+
+                $tenantId = $tenant->id;
+            }
+            if ($tenantId) {
+                $user->update(['current_tenant_id' => $tenant->id]);
             }
 
-            // Trigger email verification notification
+
             event(new Registered($user));
 
-            // For security, do NOT return tokens here. Ask user to verify first.
             return response()->json([
                 'message' => 'Account created. Please verify your email before logging in.',
                 'user'    => new UserResource($user),

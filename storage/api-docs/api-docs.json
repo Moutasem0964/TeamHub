@@ -92,38 +92,36 @@
                                 "required": [
                                     "name",
                                     "email",
-                                    "password",
-                                    "password_confirmation"
+                                    "password"
                                 ],
                                 "properties": {
                                     "name": {
-                                        "type": "string",
-                                        "example": "John Doe"
+                                        "type": "string"
                                     },
                                     "email": {
                                         "type": "string",
-                                        "format": "email",
-                                        "example": "john@example.com"
+                                        "format": "email"
                                     },
                                     "password": {
                                         "type": "string",
-                                        "example": "secret123"
+                                        "format": "password"
                                     },
                                     "password_confirmation": {
                                         "type": "string",
-                                        "example": "secret123"
+                                        "format": "password"
                                     },
                                     "create_tenant": {
-                                        "type": "boolean",
-                                        "example": true
+                                        "type": "boolean"
                                     },
                                     "tenant_name": {
-                                        "type": "string",
-                                        "example": "Tenant1"
+                                        "type": "string"
                                     },
                                     "plan": {
                                         "type": "string",
-                                        "example": "free"
+                                        "enum": [
+                                            "free",
+                                            "plus"
+                                        ]
                                     }
                                 },
                                 "type": "object"
@@ -187,12 +185,182 @@
                     }
                 }
             }
+        },
+        "/api/v1/tenants/invitations/accept/{token}": {
+            "post": {
+                "tags": [
+                    "Tenant Invitations"
+                ],
+                "summary": "Accept a tenant invitation",
+                "operationId": "61fa440b50b3733c17a8efc41a995298",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invitation accepted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "tenant_id": {
+                                            "type": "string"
+                                        },
+                                        "role": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invitation invalid or expired"
+                    }
+                }
+            }
+        },
+        "/api/v1/tenants/invite": {
+            "post": {
+                "tags": [
+                    "Tenant Invitations"
+                ],
+                "summary": "Send a tenant invitation",
+                "operationId": "026d8ef9550f77990b45df41f08971f4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "role"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "role": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Invitation sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "invitation": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "role": {
+                                                    "type": "string"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/tenants/switch": {
+            "post": {
+                "tags": [
+                    "Tenants"
+                ],
+                "summary": "Switch active tenant",
+                "operationId": "b33efd36de709ca6491613d816cea0e7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "tenant_id"
+                                ],
+                                "properties": {
+                                    "tenant_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tenant switched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "active_tenant_id": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Tenant not found or inaccessible"
+                    }
+                }
+            }
         }
     },
     "tags": [
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Tenant Invitations",
+            "description": "Tenant Invitations"
+        },
+        {
+            "name": "Tenants",
+            "description": "Tenants"
         }
     ],
     "components": {

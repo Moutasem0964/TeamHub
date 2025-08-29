@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SwitchTenantRequest;
 use Illuminate\Http\Request;
 
 class TenantController extends Controller
@@ -46,4 +47,20 @@ class TenantController extends Controller
     {
         //
     }
+
+    public function switchTenant(SwitchTenantRequest $request)
+    {
+        $user = $request->user();
+
+        if (! $user->tenants()->where('tenant_id', $request->tenant_id)->exists()) {
+            return response()->json(['message' => 'Not a member of this tenant'], 403);
+        }
+
+        $user->update(['current_tenant_id' => $request->tenant_id]);
+
+        return response()->json([
+            'message' => 'Switched tenant',
+            'tenant_id' => $request->tenant_id,
+        ]);
+    }   
 }

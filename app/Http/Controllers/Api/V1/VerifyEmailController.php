@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Requests\ResendVerificationEmailRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
+use App\Http\Controllers\Controller;
 
 class VerifyEmailController extends Controller
 {
@@ -39,12 +41,8 @@ class VerifyEmailController extends Controller
         ], 200);
     }
 
-    public function resend(Request $request)
+    public function resend(ResendVerificationEmailRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-        ]);
-
         $user = User::where('email', $request->email)->first();
 
         if ($user->hasVerifiedEmail()) {

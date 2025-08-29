@@ -23,8 +23,8 @@ class Tenant extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'tenant_users')
-            ->withPivot('role')
-            ->withTimestamps();
+            ->using(\App\Models\TenantUser::class)
+            ->withPivot('role');
     }
 
     public function projects()
