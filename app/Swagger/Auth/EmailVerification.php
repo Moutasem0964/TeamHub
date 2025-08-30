@@ -5,7 +5,7 @@ namespace App\Swagger\Auth;
 use OpenApi\Annotations as OA;
 
 /**
- * @OA\Post(
+ * @OA\Get(
  *     path="/api/v1/email/verify/{id}/{hash}",
  *     summary="Verify user email",
  *     description="Verifies the user's email and returns an API token.",
@@ -30,7 +30,7 @@ use OpenApi\Annotations as OA;
  *         @OA\JsonContent(
  *             type="object",
  *             @OA\Property(property="message", type="string"),
- *             @OA\Property(property="user", type="object"),
+ *             @OA\Property(property="user", ref="#/components/schemas/User"),
  *             @OA\Property(property="token", type="string")
  *         )
  *     ),

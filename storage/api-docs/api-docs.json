@@ -19,13 +19,13 @@
     ],
     "paths": {
         "/api/v1/email/verify/{id}/{hash}": {
-            "post": {
+            "get": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Verify user email",
                 "description": "Verifies the user's email and returns an API token.",
-                "operationId": "d08e909ea3edd43cbf866ae17bf0a3ef",
+                "operationId": "e106147227a4e06010eac62983e3ed76",
                 "parameters": [
                     {
                         "name": "id",
@@ -57,7 +57,7 @@
                                             "type": "string"
                                         },
                                         "user": {
-                                            "type": "object"
+                                            "$ref": "#/components/schemas/User"
                                         },
                                         "token": {
                                             "type": "string"
@@ -186,17 +186,28 @@
                 }
             }
         },
-        "/api/v1/tenants/invitations/accept/{token}": {
-            "post": {
+        "/api/v1/tenants/invitations/accept/{invitation}/{token}": {
+            "get": {
                 "tags": [
                     "Tenant Invitations"
                 ],
                 "summary": "Accept a tenant invitation",
-                "operationId": "61fa440b50b3733c17a8efc41a995298",
+                "operationId": "3f088fc08753686b30d072ea2894f486",
                 "parameters": [
+                    {
+                        "name": "invitation",
+                        "in": "path",
+                        "description": "Invitation ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "token",
                         "in": "path",
+                        "description": "Invitation token",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -211,12 +222,59 @@
                                 "schema": {
                                     "properties": {
                                         "message": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "example": "Invitation accepted successfully."
+                                        },
+                                        "user_id": {
+                                            "type": "string",
+                                            "format": "uuid"
                                         },
                                         "tenant_id": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "format": "uuid"
                                         },
                                         "role": {
+                                            "type": "string",
+                                            "format": "string",
+                                            "example": "member"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "Bearer eyJ0eXAiOiJKV..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "202": {
+                        "description": "Registration required (user not found)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "requires_registration": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "format": "email"
+                                        },
+                                        "tenant_id": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "role": {
+                                            "type": "string",
+                                            "example": "member"
+                                        },
+                                        "invitation_id": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "invitation_token": {
                                             "type": "string"
                                         }
                                     },
@@ -225,8 +283,132 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Invalid or expired token"
+                    },
                     "422": {
-                        "description": "Invitation invalid or expired"
+                        "description": "Invitation no longer valid"
+                    }
+                }
+            }
+        },
+        "/api/v1/register-with-invitation": {
+            "post": {
+                "tags": [
+                    "Tenant Invitations"
+                ],
+                "summary": "Register a new user with an invitation",
+                "description": "Registers a new user who has accepted an invitation but does not yet have an account.  \r\n *                  The server ensures the invitation is valid and binds the new user to the tenant with the invited role.",
+                "operationId": "e0a59e28ee996ba3ea33914ffa40b7f6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "invitation_token",
+                                    "name",
+                                    "password",
+                                    "password_confirmation",
+                                    "invitaion_id"
+                                ],
+                                "properties": {
+                                    "invitation_token": {
+                                        "type": "string",
+                                        "example": "raw-token-from-link"
+                                    },
+                                    "invitation_id": {
+                                        "type": "string",
+                                        "example": "raw-id-from-link"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Registration successful, tenant joined",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "registration successful, tenant joined"
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/User"
+                                        },
+                                        "tenant": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "member"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "Bearer eyJ0eXAiOiJKV..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Invalid or expired invitation token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid or expired token."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error (e.g., password mismatch)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The password confirmation does not match."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -349,6 +531,55 @@
             }
         }
     },
+    "components": {
+        "schemas": {
+            "User": {
+                "title": "User",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@example.com"
+                    },
+                    "email_verified_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "current_tenant_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "apiKey",
+                "description": "Enter token in format: Bearer {token}",
+                "name": "Authorization",
+                "in": "header"
+            }
+        }
+    },
     "tags": [
         {
             "name": "Auth",
@@ -363,16 +594,6 @@
             "description": "Tenants"
         }
     ],
-    "components": {
-        "securitySchemes": {
-            "sanctum": {
-                "type": "apiKey",
-                "description": "Enter token in format: Bearer {token}",
-                "name": "Authorization",
-                "in": "header"
-            }
-        }
-    },
     "security": [
         {
             "sanctum": []

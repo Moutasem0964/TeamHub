@@ -46,6 +46,7 @@ Route::prefix('v1')->group(function () {
         ->name('verification.resend');
     Route::get('/tenants/invitations/accept/{invitation}/{token}', [TenantInvitationController::class, 'accept'])
         ->middleware('throttle:5,1')->name('tenant-invitations.accept');
+    Route::post('register-with-invitation', [TenantInvitationController::class, 'registerWithInvitation']);
 
     // Protected endpoints (require token)
     Route::middleware('auth:sanctum')->group(function () {
