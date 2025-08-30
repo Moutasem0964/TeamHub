@@ -103,4 +103,22 @@ class AuthController extends Controller
             'access_token' => $accessToken
         ], 200)->withCookie($cookie);
     }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        
+        $user->tokens()->delete();
+
+        $refreshToken = $request->cookie('refresh_token');
+        if ($refreshToken) {
+            $user->refreshTokens()->delete();
+        }
+
+        $cookie = cookie()->forget('refresh_token');
+
+        return response()->json([
+            'message' => 'You are Logged out'
+        ], 200)->withCookie($cookie);
+    }
 }
