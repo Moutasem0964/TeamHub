@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\StoreRegisterRequest;
 use App\Http\Resources\UserResource;
+use App\Models\RefreshToken;
 use App\Models\Tenant;
 use App\Models\TenantUser;
 use App\Models\User;
@@ -107,7 +108,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $user = $request->user();
-        
+
         $user->tokens()->delete();
 
         $refreshToken = $request->cookie('refresh_token');
@@ -119,6 +120,48 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'You are Logged out'
+        ], 200)->withCookie($cookie);
+    }
+
+    public function refreshToken(Request $request)
+    {
+        $refreshToken = $request->cookie('refresh_token');
+
+        if (! $refreshToken) {
+            return response()->json([
+                'message' => 'No refresh token provided!'
+            ], 401);
+        }
+
+        $tokenRecord = RefreshToken::where('token', $refreshToken)->first();
+
+        if (! $tokenRecord || ! $tokenRecord->isValid()) {
+            return response()->json([
+                'message' => 'Refresh token not found or expired. Please login again.'
+            ], 401);
+        }
+
+        $user = $tokenRecord->user;
+
+        $user->tokens()->delete();
+
+        $accessToken = $user->createToken('api-token', [], now()->addHours(6))->plainTextToken;
+
+        $cookie = cookie(
+            'refresh_token',
+            $tokenRecord->token,
+            max($tokenRecord->expires_at->diffInMinutes(), 1),
+            null,
+            null,
+            true,
+            true
+        );
+
+        return response()->json([
+            'message' => 'Access token refreshed successfully',
+            'access_token' => $accessToken,
+            'user' => new UserResource($user),
+            'current_tenant_id' => $user->current_tenant_id,
         ], 200)->withCookie($cookie);
     }
 }
