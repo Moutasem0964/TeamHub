@@ -14,6 +14,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -67,18 +68,39 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $user = User::where('email', $request->email)->first();
+
+        if (! $user->email_verified_at) {
+            return response()->json([
+                'message' => 'Please verify your email before logging in.'
+            ], 403);
+        }
+
         if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'wrong Password'
             ], 401);
         }
+
         $user->tokens()->delete();
-        $token = $user->createToken('api-token')->plainTextToken;
+        $user->refreshTokens()->delete();
+
+        $accessToken = $user->createToken('api-token', [], now()->addHours(6))->plainTextToken;
+        $refreshToken = Str::random(64);
+        $expiresAt = $request->remember_me ? now()->addDays(90) : now()->addDays(30);
+
+        $user->refreshTokens()->create([
+            'token' => $refreshToken,
+            'expires_at' => $expiresAt
+        ]);
+
+        $cookie = cookie('refresh_token', $refreshToken, $expiresAt->diffInMinutes(), null, null, true, true);
+
+
         return response()->json([
             'message' => 'Login successful',
             'user' => new UserResource($user),
             'current_tenant_id' => $user->current_tenant_id,
-            'token' => $token
-        ], 200);
+            'access_token' => $accessToken
+        ], 200)->withCookie($cookie);
     }
 }

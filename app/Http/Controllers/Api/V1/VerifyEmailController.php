@@ -9,6 +9,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Str;
 
 class VerifyEmailController extends Controller
 {
@@ -31,13 +32,9 @@ class VerifyEmailController extends Controller
         $user->markEmailAsVerified();
         event(new Verified($user));
 
-        // Issue token
-        $token = $user->createToken('api-token')->plainTextToken;
-
         return response()->json([
-            'message' => 'Email successfully verified.',
+            'message' => 'Email successfully verified. Please Login',
             'user'    => new UserResource($user),
-            'token'   => $token,
         ], 200);
     }
 

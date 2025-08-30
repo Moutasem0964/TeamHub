@@ -24,7 +24,7 @@ namespace App\Swagger\Invitations;
  *
  *     @OA\Response(
  *         response=201,
- *         description="Registration successful, tenant joined",
+ *         description="Registration successful, tenant joined. Please Login!",
  *         @OA\JsonContent(
  *             @OA\Property(property="message", type="string", example="registration successful, tenant joined"),
  *             @OA\Property(property="user", ref="#/components/schemas/User"),
@@ -34,7 +34,6 @@ namespace App\Swagger\Invitations;
  *                 @OA\Property(property="id", type="string", format="uuid"),
  *                 @OA\Property(property="role", type="string", example="member")
  *             ),
- *             @OA\Property(property="token", type="string", example="Bearer eyJ0eXAiOiJKV...")
  *         )
  *     ),
  *

@@ -26,12 +26,11 @@ use OpenApi\Annotations as OA;
  *     ),
  *     @OA\Response(
  *         response=200,
- *         description="Email successfully verified",
+ *         description="Email successfully verified. Please Login!",
  *         @OA\JsonContent(
  *             type="object",
  *             @OA\Property(property="message", type="string"),
  *             @OA\Property(property="user", ref="#/components/schemas/User"),
- *             @OA\Property(property="token", type="string")
  *         )
  *     ),
  *     @OA\Response(response=403, description="Invalid or expired verification link"),

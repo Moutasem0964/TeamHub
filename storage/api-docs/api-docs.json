@@ -48,7 +48,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Email successfully verified",
+                        "description": "Email successfully verified. Please Login!",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -58,9 +58,6 @@
                                         },
                                         "user": {
                                             "$ref": "#/components/schemas/User"
-                                        },
-                                        "token": {
-                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -77,13 +74,13 @@
                 }
             }
         },
-        "/api/login": {
+        "/api/v1/login": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Login a user",
-                "operationId": "5847554fd76bec4686100fc608774f34",
+                "summary": "Login user",
+                "operationId": "f216a69b1f8ad4b9f90a712fe266528c",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -97,12 +94,15 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "user@example.com"
+                                        "example": "john@example.com"
                                     },
                                     "password": {
                                         "type": "string",
-                                        "format": "password",
-                                        "example": "secret123"
+                                        "format": "password"
+                                    },
+                                    "remember_me": {
+                                        "type": "boolean",
+                                        "example": true
                                     }
                                 },
                                 "type": "object"
@@ -118,15 +118,17 @@
                                 "schema": {
                                     "properties": {
                                         "message": {
-                                            "type": "string",
-                                            "example": "Login successful."
+                                            "type": "string"
                                         },
                                         "user": {
                                             "$ref": "#/components/schemas/User"
                                         },
-                                        "token": {
+                                        "current_tenant_id": {
                                             "type": "string",
-                                            "example": "1|eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1..."
+                                            "format": "uuid"
+                                        },
+                                        "access_token": {
+                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -135,20 +137,10 @@
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Invalid email or password."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Wrong password"
+                    },
+                    "403": {
+                        "description": "Email not verified"
                     }
                 }
             }
@@ -299,7 +291,7 @@
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Invitation accepted successfully."
+                                            "example": "Invitation accepted successfully. Please Login!"
                                         },
                                         "user_id": {
                                             "type": "string",
@@ -313,10 +305,6 @@
                                             "type": "string",
                                             "format": "string",
                                             "example": "member"
-                                        },
-                                        "token": {
-                                            "type": "string",
-                                            "example": "Bearer eyJ0eXAiOiJKV..."
                                         }
                                     },
                                     "type": "object"
@@ -419,7 +407,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Registration successful, tenant joined",
+                        "description": "Registration successful, tenant joined. Please Login!",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -443,10 +431,6 @@
                                                 }
                                             },
                                             "type": "object"
-                                        },
-                                        "token": {
-                                            "type": "string",
-                                            "example": "Bearer eyJ0eXAiOiJKV..."
                                         }
                                     },
                                     "type": "object"

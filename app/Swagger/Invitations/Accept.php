@@ -26,11 +26,10 @@ namespace App\Swagger\Invitations;
  *         description="Invitation accepted successfully",
  *         @OA\JsonContent(
  *             type="object",
- *             @OA\Property(property="message", type="string", example="Invitation accepted successfully."),
+ *             @OA\Property(property="message", type="string", example="Invitation accepted successfully. Please Login!"),
  *             @OA\Property(property="user_id", type="string", format="uuid"),
  *             @OA\Property(property="tenant_id", type="string", format="uuid"),
  *             @OA\Property(property="role", type="string", format="string",example="member"),
- *             @OA\Property(property="token", type="string", example="Bearer eyJ0eXAiOiJKV...")
  *         )
  *     ),
  *     @OA\Response(

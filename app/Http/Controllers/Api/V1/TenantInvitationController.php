@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterWithInvitationRequest;
 use App\Http\Resources\UserResource;
+use Illuminate\Auth\Events\Registered;
 
 class TenantInvitationController extends Controller
 {
@@ -88,13 +89,10 @@ class TenantInvitationController extends Controller
                 ]
             ]);
 
-            $authToken = $user->createToken('api-token')->plainTextToken;
-
             return response()->json([
                 'message' => 'Invitation accepted successfully.',
                 'user_id' => $user->id,
                 'tenant_id' => $invitation->tenant_id,
-                'token' => $authToken
             ]);
         });
     }
@@ -141,16 +139,15 @@ class TenantInvitationController extends Controller
                 ->where('id', '!=', $invitation->id)
                 ->update(['revoked' => true]);
 
-            $token = $user->createToken('api-token')->plainTextToken;
+            event(new Registered($user));
 
             return response()->json([
-                'message' => 'Registration successful, tenant joined.',
+                'message' => 'Registration successful, tenant joined. Please Login',
                 'user' => new UserResource($user),
                 'tenant' => [
                     'id' => $invitation->tenant_id,
                     'role' => $invitation->role,
                 ],
-                'token' => $token,
             ], 201);
         });
     }
