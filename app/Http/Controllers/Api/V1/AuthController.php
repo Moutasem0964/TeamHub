@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
 use App\Http\Requests\StoreRegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Tenant;
@@ -61,5 +62,23 @@ class AuthController extends Controller
                 'user'    => new UserResource($user),
             ], 201);
         });
+    }
+
+    public function login(LoginRequest $request)
+    {
+        $user = User::where('email', $request->email)->first();
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'wrong Password'
+            ], 401);
+        }
+        $user->tokens()->delete();
+        $token = $user->createToken('api-token')->plainTextToken;
+        return response()->json([
+            'message' => 'Login successful',
+            'user' => new UserResource($user),
+            'current_tenant_id' => $user->current_tenant_id,
+            'token' => $token
+        ], 200);
     }
 }
