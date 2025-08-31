@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-
+use App\Notifications\ResetPasswordCustom;
 use App\Traits\HasUuid;
+use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -12,7 +13,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, HasUuid;
+    use HasApiTokens, HasFactory, Notifiable, HasUuid, CanResetPassword;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -83,5 +84,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function refreshTokens()
     {
         return $this->hasMany(RefreshToken::class);
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $url = config('app.frontend_url')
+            ? config('app.frontend_url') . "/reset-password?token={$token}&email={$this->email}"
+            : url("/api/v1/reset-password?token={$token}&email={$this->email}");
+
+        $this->notify(new ResetPasswordCustom($url));
     }
 }

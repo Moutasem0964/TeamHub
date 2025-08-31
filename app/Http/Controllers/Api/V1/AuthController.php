@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\StoreRegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\RefreshToken;
@@ -15,6 +16,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -163,5 +165,43 @@ class AuthController extends Controller
             'user' => new UserResource($user),
             'current_tenant_id' => $user->current_tenant_id,
         ], 200)->withCookie($cookie);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email|exists:users,email']);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::RESET_LINK_SENT ?
+            response()->json([
+                'message' => 'Passowrd reset link sent to your email',
+            ], 200)
+            : response()->json([
+                'message' => 'Unable to send reset link'
+            ], 500);
+    }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password'=>Hash::make($password)
+                ])->save();
+
+                $user->tokens()->delete();
+                $user->refreshTokens()->update(['revoked' => true]);
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET ?
+            response()->json([
+                'message' => 'Password has been reset successfully. Please Login'
+            ], 200)
+            : response()->json([
+                'message' => 'Invalid token or email!!'
+            ], 400);
     }
 }
