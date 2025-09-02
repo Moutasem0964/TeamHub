@@ -49,7 +49,6 @@ class AuthController extends Controller
                     'user_id'     => $user->id,
                     'role'        => 'owner',
                     'joined_at'   => now(),
-                    'accepted_at' => now(),
                 ]);
 
                 $tenantId = $tenant->id;

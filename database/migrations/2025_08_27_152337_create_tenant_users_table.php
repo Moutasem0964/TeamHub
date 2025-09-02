@@ -17,7 +17,6 @@ return new class extends Migration
             $table->char('user_id', 36);
             $table->enum('role', ['owner', 'admin', 'member', 'viewer'])->default('member');
             $table->timestamp('joined_at')->nullable();
-            $table->timestamp('accepted_at')->nullable();
 
             $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

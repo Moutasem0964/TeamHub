@@ -21,11 +21,13 @@ use App\Models\IssueComment;
 use App\Policies\IssueCommentPolicy;
 
 use App\Models\IssueAttachment;
+use App\Models\Tenant;
 use App\Models\TenantInvitation;
 use App\Policies\IssueAttachmentPolicy;
 
 use App\Models\Webhook;
 use App\Policies\TenantInvitationPolicy;
+use App\Policies\TenantPolicy;
 use App\Policies\WebhookPolicy;
 
 // use Illuminate\Support\Facades\Gate;
@@ -47,7 +49,8 @@ class AuthServiceProvider extends ServiceProvider
         IssueComment::class => IssueCommentPolicy::class,
         IssueAttachment::class => IssueAttachmentPolicy::class,
         Webhook::class => WebhookPolicy::class,
-        TenantInvitation::class => TenantInvitationPolicy::class
+        TenantInvitation::class => TenantInvitationPolicy::class,
+        Tenant::class => TenantPolicy::class
     ];
 
     /**
