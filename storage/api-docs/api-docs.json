@@ -549,6 +549,48 @@
                 }
             }
         },
+        "/api/v1/tenants/pending-invitations": {
+            "get": {
+                "tags": [
+                    "Tenant Invitations"
+                ],
+                "summary": "Get all pending tenant invitations for current tenant",
+                "description": "Returns a list of pending invitations filtered by tenant.",
+                "operationId": "getPendingInvitations",
+                "responses": {
+                    "200": {
+                        "description": "Pending invitations retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pending invitations retrieved successfully."
+                                        },
+                                        "invitations": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/TenantInvitation"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v1/register-with-invitation": {
             "post": {
                 "tags": [
@@ -664,6 +706,73 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/v1/tenants/delete-invitation/{invitation}": {
+            "delete": {
+                "tags": [
+                    "Tenant Invitations"
+                ],
+                "summary": "Revoke a tenant invitation",
+                "description": "Marks a tenant invitation as revoked.",
+                "operationId": "revokeInvitation",
+                "parameters": [
+                    {
+                        "name": "invitation",
+                        "in": "path",
+                        "description": "UUID of the invitation to revoke",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invitation revoked successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invitation revoked successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "This invitation cannot be revoked",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "This invitation cannot be revoked."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/v1/tenants/invite": {
@@ -786,6 +895,41 @@
     },
     "components": {
         "schemas": {
+            "TenantInvitation": {
+                "title": "Tenant Invitation",
+                "description": "A tenant invitation object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "a4de3245-70ed-484d-9430-90b77eb897cd"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "example@gmail.com"
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "member"
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-09-05T15:17:51.000000Z"
+                    },
+                    "accepted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "revoked": {
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "type": "object"
+            },
             "User": {
                 "title": "User",
                 "properties": {
