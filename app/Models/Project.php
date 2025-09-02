@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\HasUuid;
+use App\Traits\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    use HasFactory, HasUuid;
+    use HasFactory, HasUuid, TenantScoped;
 
     protected $fillable = ['tenant_id', 'name', 'description', 'status'];
 

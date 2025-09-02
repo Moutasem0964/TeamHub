@@ -34,27 +34,28 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Auth related endpoints
 Route::prefix('v1')->group(function () {
+    Route::post('register', [AuthController::class, 'register']);
 
-    // Public endpoints
-    Route::post('register', [AuthController::class, 'register']); // create new user
-    Route::post('login', [AuthController::class, 'login']);       // login and get token
-    Route::post('forgot-password', [AuthController::class, 'forgotPassword']); // optional
-    Route::post('reset-password', [AuthController::class, 'resetPassword']);   // optional
+    Route::post('login', [AuthController::class, 'login']);
+
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+
+    Route::post('reset-password', [AuthController::class, 'resetPassword']);
+
     Route::get('email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])->middleware('throttle:5,1')
         ->name('verification.verify');
+
     Route::post('email/resend', [VerifyEmailController::class, 'resend'])->middleware('throttle:5,1')
         ->name('verification.resend');
+
     Route::get('/tenants/invitations/accept/{invitation}/{token}', [TenantInvitationController::class, 'accept'])
         ->middleware('throttle:5,1')->name('tenant-invitations.accept');
-    Route::post('register-with-invitation', [TenantInvitationController::class, 'registerWithInvitation']);
-    Route::post('refresh-token',[AuthController::class,'refreshToken']);
 
-    // Protected endpoints (require token)
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('logout', [AuthController::class, 'logout']); // revoke token
-        Route::get('me', [AuthController::class, 'me']);          // current user info
-        Route::post('refresh', [AuthController::class, 'refresh']); // optional if you want refresh logic
-    });
+    Route::post('register-with-invitation', [TenantInvitationController::class, 'registerWithInvitation']);
+
+    Route::post('refresh-token', [AuthController::class, 'refreshToken']);
+
+    Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
 
 
@@ -85,8 +86,19 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('webhooks', WebhookController::class);
 
     // Tenant Membership
-    Route::apiResource('tenants', TenantController::class);
     Route::post('/tenants/switch', [TenantController::class, 'switchTenant']);
     Route::apiResource('tenants.members', TenantMemberController::class);
-    Route::post('/tenants/invite', [TenantInvitationController::class, 'send'])->middleware('throttle:5,1');
+    Route::post('/tenants/invite', [TenantInvitationController::class, 'send'])->middleware(['throttle:5,1', 'EnsureTenantContext']);
+    Route::get('/tenants/pending-invitations', [TenantInvitationController::class, 'pendingInvitations'])
+        ->middleware('EnsureTenantContext')
+        ->name('tenant-pending-invitations');
+
+    Route::delete('/tenants/delete-invitation/{invitation}', [TenantInvitationController::class, 'revoke'])
+        ->middleware('EnsureTenantContext')
+        ->name('tenant-invitations.revoke');
+
+    Route::apiResource('tenants', TenantController::class);
+
 });
+
+

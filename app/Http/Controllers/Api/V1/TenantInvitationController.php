@@ -13,23 +13,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterWithInvitationRequest;
 use App\Http\Resources\UserResource;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Log;
 
 class TenantInvitationController extends Controller
 {
     public function send(SendInvitationRequest $request)
     {
-        $user = $request->user();
-        $tenantId = $user->current_tenant_id;
-
-        $this->authorize('send', [TenantInvitation::class, $tenantId]);
+        $this->authorize('send', TenantInvitation::class);
 
         $validated = $request->validated();
 
-        return DB::transaction(function () use ($validated, $tenantId) {
+        return DB::transaction(function () use ($validated) {
             $token = Str::random(64);
 
             $invitation = TenantInvitation::create([
-                'tenant_id'  => $tenantId,
                 'email'      => strtolower($validated['email']),
                 'role'       => $validated['role'],
                 'token_hash' => Hash::make($token),
@@ -50,8 +47,10 @@ class TenantInvitationController extends Controller
         });
     }
 
-    public function accept(TenantInvitation $invitation, string $token)
+    public function accept(string $invitationId, string $token)
     {
+        $invitation = TenantInvitation::withoutGlobalScopes()->findOrFail($invitationId);
+
         if (! Hash::check($token, $invitation->token_hash)) {
             return response()->json(['message' => 'Invalid invitation token.'], 403);
         }
@@ -75,7 +74,9 @@ class TenantInvitationController extends Controller
             }
 
             $invitation->update(['accepted_at' => now()]);
-            TenantInvitation::where('tenant_id', $invitation->tenant_id)
+
+            TenantInvitation::withoutGlobalScopes()
+                ->where('tenant_id', $invitation->tenant_id)
                 ->where('email', $invitation->email)
                 ->whereNull('accepted_at')
                 ->where('id', '!=', $invitation->id)
@@ -98,10 +99,11 @@ class TenantInvitationController extends Controller
     }
 
 
+
     public function registerWithInvitation(RegisterWithInvitationRequest $request)
     {
         return DB::transaction(function () use ($request) {
-            $invitation = TenantInvitation::findOrFail($request->invitation_id);
+            $invitation = TenantInvitation::withoutGlobalScopes()->findOrFail($request->invitation_id);
 
             if (! Hash::check($request->invitation_token, $invitation->token_hash)) {
                 return response()->json(['message' => 'Invalid invitation token.'], 403);
@@ -133,7 +135,8 @@ class TenantInvitationController extends Controller
             ]);
 
             $invitation->update(['accepted_at' => now()]);
-            TenantInvitation::where('tenant_id', $invitation->tenant_id)
+
+            TenantInvitation::withoutGlobalScopes()
                 ->where('email', $invitation->email)
                 ->whereNull('accepted_at')
                 ->where('id', '!=', $invitation->id)
@@ -150,5 +153,35 @@ class TenantInvitationController extends Controller
                 ],
             ], 201);
         });
+    }
+
+
+    public function pendingInvitations()
+    {
+        $this->authorize('viewAny', TenantInvitation::class);
+        $invitations = TenantInvitation::whereNull('accepted_at')
+            ->where('revoked', false)
+            ->get();
+
+        return response()->json([
+            'message' => 'Pending invitations retrieved successfully.',
+            'invitations' => $invitations
+        ], 200);
+    }
+
+    public function revoke(TenantInvitation $invitation)
+    {
+        $this->authorize('revoke', $invitation);
+        if ($invitation->accepted_at || $invitation->revoked) {
+            return response()->json([
+                'message' => 'This invitation cannot be revoked.'
+            ], 422);
+        }
+
+        $invitation->update(['revoked' => true]);
+
+        return response()->json([
+            'message' => 'Invitation revoked successfully.'
+        ], 200);
     }
 }

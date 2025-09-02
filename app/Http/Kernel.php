@@ -40,13 +40,13 @@ class Kernel extends HttpKernel
 
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+            \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
 
     /**
-     * The application's middleware aliases.
+     * The application's route middleware aliases.
      *
      * Aliases may be used instead of class names to conveniently assign middleware to routes and groups.
      *
@@ -64,6 +64,25 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'tenant' => \App\Http\Middleware\EnsureTenantContext::class,
+        'EnsureTenantContext' => \App\Http\Middleware\EnsureTenantContext::class,
+    ];
+
+    /**
+     * The priority-sorted list of middleware.
+     *
+     * Forces middleware to run in the given order, important for route model binding
+     * that relies on tenant context being set before querying models with global scopes.
+     *
+     * @var array<int, class-string|string>
+     */
+    protected $middlewarePriority = [
+        \Illuminate\Auth\Middleware\Authenticate::class,
+        \App\Http\Middleware\EnsureTenantContext::class,    // must run first
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+        \App\Http\Middleware\TrimStrings::class,
+        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        // add other middleware in priority order if needed
     ];
 }

@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\Traits\HasUuid;
+use App\Traits\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TenantInvitation extends Model
 {
-    use HasFactory,HasUuid;
+    use HasFactory,HasUuid,TenantScoped;
 
     public $incrementing = false;
     protected $keyType = 'string';

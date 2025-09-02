@@ -14,7 +14,9 @@ class TenantInvitationPolicy
      */
     public function viewAny(User $user): bool
     {
-        //
+        return TenantUser::where('user_id', $user->id)->where('tenant_id', app('tenant_id'))
+            ->whereIn('role', ['owner', 'admin'])
+            ->exists();
     }
 
     /**
@@ -44,9 +46,12 @@ class TenantInvitationPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, TenantInvitation $tenantInvitation): bool
+    public function revoke(User $user, TenantInvitation $tenantInvitation): bool
     {
-        //
+        return TenantUser::where('tenant_id', $tenantInvitation->tenant_id)
+            ->where('user_id', $user->id)
+            ->whereIn('role', ['owner', 'admin'])
+            ->exists();
     }
 
     /**
@@ -65,12 +70,11 @@ class TenantInvitationPolicy
         //
     }
 
-    public function send(User $user, $tenantId)
+    public function send(User $user)
     {
-        $tenantRole = TenantUser::where('tenant_id', $tenantId)
-            ->where('user_id', $user->id)
-            ->first();
-
-        return $tenantRole && in_array($tenantRole->role, ['owner', 'admin']);
+        return TenantUser::where('user_id', $user->id)
+            ->where('tenant_id', app('tenant_id'))
+            ->whereIn('role', ['owner', 'admin'])
+            ->exists();
     }
 }
