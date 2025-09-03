@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Tenant;
+use App\Models\TenantUser;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
@@ -21,7 +22,7 @@ class TenantPolicy
      */
     public function view(User $user, Tenant $tenant): bool
     {
-        //
+        return TenantUser::where('user_id', $user->id)->where('tenant_id', $tenant->id)->exists();
     }
 
     /**
@@ -37,7 +38,8 @@ class TenantPolicy
      */
     public function update(User $user, Tenant $tenant): bool
     {
-        //
+        return TenantUser::where('user_id', $user->id)->where('tenant_id', $tenant->id)
+            ->whereIn('role', ['owner', 'admin'])->exists();
     }
 
     /**
