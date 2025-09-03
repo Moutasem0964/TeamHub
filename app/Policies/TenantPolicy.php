@@ -5,10 +5,18 @@ namespace App\Policies;
 use App\Models\Tenant;
 use App\Models\TenantUser;
 use App\Models\User;
+use App\Services\CacheService;
 use Illuminate\Auth\Access\Response;
 
 class TenantPolicy
 {
+    protected CacheService $cache;
+
+    public function __construct(CacheService $cache)
+    {
+        $this->cache = $cache;
+    }
+
     /**
      * Determine whether the user can view any models.
      */
@@ -22,7 +30,7 @@ class TenantPolicy
      */
     public function view(User $user, Tenant $tenant): bool
     {
-        return TenantUser::where('user_id', $user->id)->where('tenant_id', $tenant->id)->exists();
+        return $this->cache->isTenantMember($user, $tenant->id);
     }
 
     /**
@@ -38,8 +46,8 @@ class TenantPolicy
      */
     public function update(User $user, Tenant $tenant): bool
     {
-        return TenantUser::where('user_id', $user->id)->where('tenant_id', $tenant->id)
-            ->whereIn('role', ['owner', 'admin'])->exists();
+        $role = $this->cache->roleCheck($user, $tenant->id);
+        return in_array($role, ['owner', 'admin']);
     }
 
     /**

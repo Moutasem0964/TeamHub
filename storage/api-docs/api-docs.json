@@ -1131,6 +1131,124 @@
                     }
                 }
             }
+        },
+        "/api/v1/tenants/{tenant}": {
+            "patch": {
+                "tags": [
+                    "Tenants"
+                ],
+                "summary": "Partially update a tenant",
+                "description": "Update one or more tenant fields such as name, plan, or settings. Only owners and admins can update a tenant.",
+                "operationId": "patchTenant",
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "description": "Tenant UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Tenant1.Inc"
+                                    },
+                                    "plan": {
+                                        "type": "string",
+                                        "example": "free"
+                                    },
+                                    "settings": {
+                                        "properties": {
+                                            "theme": {
+                                                "type": "string",
+                                                "example": "light"
+                                            },
+                                            "timezone": {
+                                                "type": "string",
+                                                "example": "UTC"
+                                            },
+                                            "locale": {
+                                                "type": "string",
+                                                "example": "en"
+                                            },
+                                            "notifications": {
+                                                "properties": {
+                                                    "email": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "sms": {
+                                                        "type": "boolean",
+                                                        "example": false
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "branding": {
+                                                "properties": {
+                                                    "logo_url": {
+                                                        "type": "string",
+                                                        "example": null,
+                                                        "nullable": true
+                                                    },
+                                                    "primary_color": {
+                                                        "type": "string",
+                                                        "example": "#2563eb"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tenant updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tenant updated successfully."
+                                        },
+                                        "tenant": {
+                                            "$ref": "#/components/schemas/Tenant"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Unauthorized - you are not allowed to update this tenant"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {

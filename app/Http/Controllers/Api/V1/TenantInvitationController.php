@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterWithInvitationRequest;
 use App\Http\Resources\UserResource;
+use App\Services\CacheService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Log;
 
@@ -100,9 +101,9 @@ class TenantInvitationController extends Controller
 
 
 
-    public function registerWithInvitation(RegisterWithInvitationRequest $request)
+    public function registerWithInvitation(RegisterWithInvitationRequest $request, CacheService $cache)
     {
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request, $cache) {
             $invitation = TenantInvitation::withoutGlobalScopes()->findOrFail($request->invitation_id);
 
             if (! Hash::check($request->invitation_token, $invitation->token_hash)) {
@@ -133,6 +134,8 @@ class TenantInvitationController extends Controller
                     'joined_at' => now(),
                 ],
             ]);
+
+            $cache->put("tenant_user_{$invitation->tenant_id}_{$user->id}_role", $invitation->role);
 
             $invitation->update(['accepted_at' => now()]);
 

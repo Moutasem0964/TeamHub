@@ -9,6 +9,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use App\Http\Controllers\Controller;
+use App\Services\CacheService;
 use Illuminate\Support\Str;
 
 class VerifyEmailController extends Controller

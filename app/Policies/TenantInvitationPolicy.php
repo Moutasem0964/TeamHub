@@ -2,21 +2,29 @@
 
 namespace App\Policies;
 
+use App\Models\Tenant;
 use App\Models\TenantInvitation;
 use App\Models\TenantUser;
 use App\Models\User;
+use App\Services\CacheService;
 use Illuminate\Auth\Access\Response;
 
 class TenantInvitationPolicy
 {
+
+    protected CacheService $cache;
+
+    public function __construct(CacheService $cache)
+    {
+        $this->cache = $cache;
+    }
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return TenantUser::where('user_id', $user->id)->where('tenant_id', app('tenant_id'))
-            ->whereIn('role', ['owner', 'admin'])
-            ->exists();
+        $role = $this->cache->roleCheck($user, app('tenant_id'));
+        return in_array($role, ['owner', 'admin']);
     }
 
     /**
@@ -48,10 +56,8 @@ class TenantInvitationPolicy
      */
     public function revoke(User $user, TenantInvitation $tenantInvitation): bool
     {
-        return TenantUser::where('tenant_id', $tenantInvitation->tenant_id)
-            ->where('user_id', $user->id)
-            ->whereIn('role', ['owner', 'admin'])
-            ->exists();
+        $role = $this->cache->roleCheck($user, $tenantInvitation->tenant_id);
+        return in_array($role, ['owner', 'admin']);
     }
 
     /**
@@ -72,9 +78,7 @@ class TenantInvitationPolicy
 
     public function send(User $user)
     {
-        return TenantUser::where('user_id', $user->id)
-            ->where('tenant_id', app('tenant_id'))
-            ->whereIn('role', ['owner', 'admin'])
-            ->exists();
+        $role = $this->cache->roleCheck($user, app('tenant_id'));
+        return in_array($role, ['owner', 'admin']);
     }
 }

@@ -8,10 +8,11 @@ use App\Http\Requests\SwitchTenantRequest;
 use App\Http\Requests\UpdateTenantRequest;
 use App\Models\Tenant;
 use App\Models\TenantUser;
+use App\Services\CacheService;
 use App\Services\SlugService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Validation\Rules\Can;
 
 class TenantController extends Controller
 {
@@ -49,11 +50,11 @@ class TenantController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreTenantRequest $request)
+    public function store(StoreTenantRequest $request, CacheService $cache)
     {
         $user = $request->user();
 
-        return DB::transaction(function () use ($user, $request) {
+        return DB::transaction(function () use ($user, $request, $cache) {
 
             $tenant = Tenant::create([
                 'name' => $request->name,
@@ -67,6 +68,8 @@ class TenantController extends Controller
                 'role' => 'owner',
                 'joined_at' => now()
             ]);
+
+            $cache->put("tenant_user_{$tenant->id}_{$user->id}_role", 'owner');
 
             $user->update(['current_tenant_id' => $tenant->id]);
 
@@ -82,18 +85,14 @@ class TenantController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Tenant $tenant)
+    public function show(Tenant $tenant,CacheService $cache)
     {
         $this->authorize('view', $tenant);
 
         $user = auth()->user();
 
         // user’s role in this tenant
-        $role = $tenant->users()
-            ->where('user_id', $user->id)
-            ->first()
-            ->pivot
-            ->role;
+        $role=$cache->roleCheck($user,$tenant);
 
         // tenant members with flattened pivot fields
         $members = $tenant->users()

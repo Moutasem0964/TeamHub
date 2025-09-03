@@ -11,6 +11,7 @@ use App\Models\RefreshToken;
 use App\Models\Tenant;
 use App\Models\TenantUser;
 use App\Models\User;
+use App\Services\CacheService;
 use App\Services\SlugService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -21,11 +22,11 @@ use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function register(StoreRegisterRequest $request)
+    public function register(StoreRegisterRequest $request, CacheService $cache)
     {
         $validated = $request->validated();
 
-        return DB::transaction(function () use ($validated) {
+        return DB::transaction(function () use ($validated,$cache) {
 
             $user = User::create([
                 'name'     => $validated['name'],
@@ -51,11 +52,14 @@ class AuthController extends Controller
                     'joined_at'   => now(),
                 ]);
 
+                $cache->put("tenant_user_{$tenant->id}_{$user->id}_role", 'owner');
+
                 $tenantId = $tenant->id;
             }
             if ($tenantId) {
                 $user->update(['current_tenant_id' => $tenant->id]);
             }
+
 
 
             event(new Registered($user));
@@ -187,7 +191,7 @@ class AuthController extends Controller
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
                 $user->forceFill([
-                    'password'=>Hash::make($password)
+                    'password' => Hash::make($password)
                 ])->save();
 
                 $user->tokens()->delete();

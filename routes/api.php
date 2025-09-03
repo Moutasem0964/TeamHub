@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\TenantInvitationController;
 use App\Http\Controllers\Api\V1\VerifyEmailController;
 use App\Models\TenantInvitation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,10 +43,10 @@ Route::prefix('v1')->group(function () {
 
     Route::post('reset-password', [AuthController::class, 'resetPassword']);
 
-    Route::get('email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])->middleware('throttle:5,1')
+    Route::get('email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])->middleware('throttle:1,1')
         ->name('verification.verify');
 
-    Route::post('email/resend', [VerifyEmailController::class, 'resend'])->middleware('throttle:5,1')
+    Route::post('email/resend', [VerifyEmailController::class, 'resend'])->middleware('throttle:1,1')
         ->name('verification.resend');
 
     Route::get('/tenants/invitations/accept/{invitation}/{token}', [TenantInvitationController::class, 'accept'])
@@ -88,7 +89,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     // Tenant Membership
     Route::post('/tenants/switch', [TenantController::class, 'switchTenant']);
     Route::apiResource('tenants.members', TenantMemberController::class);
-    Route::post('/tenants/invite', [TenantInvitationController::class, 'send'])->middleware(['throttle:5,1', 'EnsureTenantContext']);
+    Route::post('/tenants/invite', [TenantInvitationController::class, 'send'])->middleware(['throttle:1,1', 'EnsureTenantContext']);
     Route::get('/tenants/pending-invitations', [TenantInvitationController::class, 'pendingInvitations'])
         ->middleware('EnsureTenantContext')
         ->name('tenant-pending-invitations');
